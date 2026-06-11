@@ -16,7 +16,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.animation.Animatable as ColorAnimatable
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.olivastech.examples.ui.theme.SmallDetailsTheme
@@ -31,6 +36,7 @@ import dev.chiksmedina.Solar
 import dev.chiksmedina.solar.Linear
 import dev.chiksmedina.solar.linear.Search
 import dev.chiksmedina.solar.linear.search.Magnifer
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +83,25 @@ fun StandardSearchBar(
     isError: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val scale = remember { Animatable(1f) }
+    val tintColor = remember { ColorAnimatable(Color.Gray) }
+
+    LaunchedEffect(isError) {
+        if (isError) {
+            repeat(3) {
+                launch {
+                    tintColor.animateTo(Color(0xFFFFA500), animationSpec = tween(150))
+                    tintColor.animateTo(Color.Gray, animationSpec = tween(150))
+                }
+                scale.animateTo(1.3f, animationSpec = tween(150))
+                scale.animateTo(1f, animationSpec = tween(150))
+            }
+        } else {
+            tintColor.snapTo(Color.Gray)
+            scale.snapTo(1f)
+        }
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -92,7 +117,12 @@ fun StandardSearchBar(
             leadingIcon = {
                 Icon(
                     imageVector = Solar.Linear.Search.Magnifer,
-                    contentDescription = "Icono de usuario"
+                    contentDescription = "Icono de usuario",
+                    tint = tintColor.value,
+                    modifier = Modifier.graphicsLayer(
+                        scaleX = scale.value,
+                        scaleY = scale.value
+                    )
                 )
             },
             colors = TextFieldDefaults.colors(
