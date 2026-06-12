@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
             SmallDetailsTheme {
                 var someText by remember { mutableStateOf("") }
                 var isError by remember { mutableStateOf(false) }
+                var isValidated by remember { mutableStateOf(false) }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Column(
@@ -58,15 +59,23 @@ class MainActivity : ComponentActivity() {
                             onValueChange = {
                                 someText = it
                                 isError = false
+                                isValidated = false
                             },
-                            isError = isError
+                            isError = isError,
+                            isValidated = isValidated
                         )
                         ContentArea(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth(),
                             onClickValidate = {
-                                if (someText.isEmpty()) isError = true
+                                if (someText.isEmpty()) {
+                                    isError = true
+                                    isValidated = false
+                                } else {
+                                    isError = false
+                                    isValidated = true
+                                }
                             }
                         )
                     }
@@ -81,6 +90,7 @@ fun StandardSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     isError: Boolean,
+    isValidated: Boolean,
     modifier: Modifier = Modifier
 ) {
     val scale = remember { Animatable(1f) }
@@ -130,7 +140,9 @@ fun StandardSearchBar(
                 unfocusedContainerColor = Color.Transparent,
                 disabledContainerColor = Color.Transparent,
                 errorContainerColor = Color.Transparent,
-                errorIndicatorColor = Color(0xFFFFA500)
+                errorIndicatorColor = Color(0xFFFFA500),
+                focusedIndicatorColor = if (isValidated) Color.Green else Color.Gray,
+                unfocusedIndicatorColor = if (isValidated) Color.Green else Color.Gray
             )
         )
     }
@@ -162,7 +174,8 @@ fun GreetingPreview() {
         StandardSearchBar(
             value = "",
             onValueChange = {},
-            isError = false
+            isError = false,
+            isValidated = false
         )
     }
 }
