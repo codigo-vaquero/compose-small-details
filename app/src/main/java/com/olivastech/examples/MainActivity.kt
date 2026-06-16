@@ -12,16 +12,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.animation.Animatable as ColorAnimatable
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,27 +33,68 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.olivastech.examples.ui.theme.SmallDetailsTheme
 import dev.chiksmedina.Solar
 import dev.chiksmedina.solar.Linear
+import dev.chiksmedina.solar.linear.BuildingInfrastructure
+import dev.chiksmedina.solar.linear.Like
 import dev.chiksmedina.solar.linear.Search
+import dev.chiksmedina.solar.linear.Users
+import dev.chiksmedina.solar.linear.buildinginfrastructure.Home
+import dev.chiksmedina.solar.linear.like.Heart
 import dev.chiksmedina.solar.linear.search.Magnifer
+import dev.chiksmedina.solar.linear.users.UserCircle
 import kotlinx.coroutines.launch
+import com.olivastech.examples.TextFieldsView
+
 
 class MainActivity : ComponentActivity() {
+    val textFieldsView = TextFieldsView()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             SmallDetailsTheme {
+                var selectedTab by remember { mutableIntStateOf(0) }
                 var someText by remember { mutableStateOf("") }
                 var isError by remember { mutableStateOf(false) }
                 var isValidated by remember { mutableStateOf(false) }
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        NavigationBar {
+                            NavigationBarItem(
+                                selected = selectedTab == 0,
+                                onClick = { selectedTab = 0 },
+                                icon = { Icon(Solar.Linear.BuildingInfrastructure.Home, contentDescription = "Home") },
+                                label = { Text("Home") }
+                            )
+                            NavigationBarItem(
+                                selected = selectedTab == 1,
+                                onClick = { selectedTab = 1 },
+                                icon = { Icon(Solar.Linear.Search.Magnifer, contentDescription = "Search") },
+                                label = { Text("Search") }
+                            )
+                            NavigationBarItem(
+                                selected = selectedTab == 2,
+                                onClick = { selectedTab = 2 },
+                                icon = { Icon(Solar.Linear.Like.Heart, contentDescription = "Favorites") },
+                                label = { Text("Favorites") }
+                            )
+                            NavigationBarItem(
+                                selected = selectedTab == 3,
+                                onClick = { selectedTab = 3 },
+                                icon = { Icon(Solar.Linear.Users.UserCircle, contentDescription = "Profile") },
+                                label = { Text("Profile") }
+                            )
+                        }
+                    }
+                ) { innerPadding ->
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        StandardSearchBar(
+                        textFieldsView.StandardSearchBar(
                             value = someText,
                             onValueChange = {
                                 someText = it
@@ -86,69 +126,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun StandardSearchBar(
-    value: String,
-    onValueChange: (String) -> Unit,
-    isError: Boolean,
-    isValidated: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val scale = remember { Animatable(1f) }
-    val tintColor = remember { ColorAnimatable(Color.Gray) }
-
-    LaunchedEffect(isError) {
-        if (isError) {
-            repeat(3) {
-                launch {
-                    tintColor.animateTo(Color(0xFFFFA500), animationSpec = tween(150))
-                    tintColor.animateTo(Color.Gray, animationSpec = tween(150))
-                }
-                scale.animateTo(1.3f, animationSpec = tween(150))
-                scale.animateTo(1f, animationSpec = tween(150))
-            }
-        } else {
-            tintColor.snapTo(Color.Gray)
-            scale.snapTo(1f)
-        }
-    }
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            isError = isError,
-            label = { Text("Write something here...") },
-            modifier = Modifier.weight(1f),
-            leadingIcon = {
-                Icon(
-                    imageVector = Solar.Linear.Search.Magnifer,
-                    contentDescription = "Icono de usuario",
-                    tint = tintColor.value,
-                    modifier = Modifier.graphicsLayer(
-                        scaleX = scale.value,
-                        scaleY = scale.value
-                    )
-                )
-            },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                errorContainerColor = Color.Transparent,
-                errorIndicatorColor = Color(0xFFFFA500),
-                focusedIndicatorColor = if (isValidated) Color.Green else Color.Gray,
-                unfocusedIndicatorColor = if (isValidated) Color.Green else Color.Gray
-            )
-        )
-    }
-}
-
-@Composable
 fun ContentArea(
     onClickValidate: () -> Unit,
     modifier: Modifier = Modifier
@@ -170,8 +147,10 @@ fun ContentArea(
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
+    val textFieldsView = TextFieldsView()
+
     SmallDetailsTheme {
-        StandardSearchBar(
+        textFieldsView.StandardSearchBar(
             value = "",
             onValueChange = {},
             isError = false,
